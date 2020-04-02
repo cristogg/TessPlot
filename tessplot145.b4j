@@ -1,0 +1,1219 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=Layout1.bjl
+FileGroup1=Default Group
+Group=Default Group
+Library1=jcore
+Library2=jfx
+Library3=jxui
+Library4=jrandomaccessfile
+Library5=jstringutils
+NumberOfFiles=1
+NumberOfLibraries=5
+NumberOfModules=0
+Version=8
+@EndOfDesignText@
+#Region Project Attributes 
+	#MainFormWidth:580
+	#MainFormHeight: 740 
+	
+#End Region
+
+Sub Process_Globals
+	Private fx As JFX
+	Private MainForm As Form
+	Private PanelMain As B4XView
+	Dim xui As XUI 'ignore
+	Private mag2(4, 12) As Float
+	Private ancho As Int = 10
+	Private alto As Int = 8
+	Private ListView1 As ListView
+	Private Bshowfiles As Button
+	Private Lpiepag As Label
+	Private Bsavebmp As Button
+	Private grafica As B4XCanvas
+	Private LatLongSl As String
+	Private fentrada As String
+	Private  difacimut As Int
+	Private Sbrillo As Slider
+	Private FichSel As String
+	Private Label1 As Label
+	Private Brillomax, Brillomin As Float
+	Private MVmin, MVmax As Float
+	Dim rango As Float
+
+	Private Smvmax As Slider
+	Private Smvmin As Slider
+	Private Lmvmin As Label
+	Dim Can As B4XCanvas
+	Private MagAS(146) As Float
+	Private AS145 As Boolean
+
+	Private Lmvmax As Label
+	Private CBauto As CheckBox
+	
+'	Private r, g, b As Int
+'	Private color(r,g,b) As Int
+	Private mR(32) As Int
+	Private mG(32) As Int
+	Private mB(32) As Int
+	Private CBcolor As CheckBox
+	Private Lcontras As Label
+	
+	Private Lati, Longi, HoraSl As String
+	Private TempIRmin, TempAmb As Float
+	
+	Private CBtemper As CheckBox
+	Private CBtextobrillo As CheckBox
+	Private numrowreal As Int
+	Private Bmas As Button
+	Private Bmenos As Button
+	Private BMmenos As Button
+	Private BMmas As Button
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	MainForm = Form1
+	MainForm.RootPane.LoadLayout("Layout1") 'Load the layout file.
+	MainForm.Title = "TAS Plot"
+	MainForm.Show
+	rango = 1.9
+	Bshowfiles_Action
+
+End Sub
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Return True
+End Sub
+
+
+
+'Private Sub draw_sector(altura As Float, azimut As Float, magnitud As Float, cx As Float, cy As Float, pCan As B4XCanvas)
+Private Sub draw_sector(altura As Float, azimut As Float, magnitud As Float, cx As Float, cy As Float, pCan As B4XCanvas, grados As Int, altu As Int)	
+	Dim p1 As B4XPath
+	Private ang1, ang2, inc_ang, x1, y1, xt, yt, r1, r2 As Float
+	Private mm As Float = magnitud
+	Dim ff As B4XFont = xui.CreateDefaultFont(10)
+	Dim mpal As Int
+	Dim ranb As Float
+	
+	ang1 = azimut -1
+alto = altu
+ancho = grados
+	ang2 = (azimut + ancho ) + 1 
+	inc_ang = (ang2 - ang1) / 10.0
+	
+	
+	altura = altura * 3.0
+	
+	r1 = altura - 1
+	r2 = (altura + alto * 3) + 1
+	
+	x1 = cx + r1 * CosD(ang1)
+	y1 = cy + r1 * SinD(ang1)
+	p1.Initialize(x1, y1)
+	x1 = cx + r2 * CosD(ang1)
+	y1 = cy + r2 * SinD(ang1)
+	p1.LineTo(x1, y1)
+	
+	For np = 0 To 10
+		x1 = cx + r2 * CosD(ang1 + inc_ang * np)
+		y1 = cy + r2 * SinD(ang1 + inc_ang * np)
+		p1.LineTo(x1, y1)
+	Next
+	
+	
+	x1 = cx + r2 * CosD(ang2)
+	y1 = cy + r2 * SinD(ang2)
+	p1.LineTo(x1, y1)
+	x1 = cx + r1 * CosD(ang2)
+	y1 = cy + r1 * SinD(ang2)
+	p1.LineTo(x1, y1)
+	For np = 0 To 10
+		x1 = cx + r1 * CosD(ang2 - inc_ang * np)
+		y1 = cy + r1 * SinD(ang2 - inc_ang * np)
+		p1.LineTo(x1, y1)
+	Next
+	
+''	xt = cx + (r2+r1 + 25) / 2 * CosD((ang2+ang1)/2)
+''	yt = cy + (r2+r1 + 25) / 2 * SinD((ang2+ang1)/2)
+'
+'	xt = cx + (r2+r1 + 5) / 2 * CosD((ang2+ang1)/2) 'mete los textos en su zona
+'	yt = cy + (r2+r1 + 5) / 2 * SinD((ang2+ang1)/2)
+
+
+	If AS145 = True Then
+		xt = cx + (r2+r1 + 5) / 2 * CosD((ang2+ang1)/2) 'mete los textos en su zona
+		yt = cy + (r2+r1 + 5) / 2 * SinD((ang2+ang1)/2)
+	Else
+		If altura = 0 Then	'aleja los textos del centro para que no se pisen 				
+				xt = cx + (r2+r1 + 30) / 2 * CosD((ang2+ang1)/2) 'mete los textos en su zona
+				yt = cy + (r2+r1 + 30) / 2 * SinD((ang2+ang1)/2)
+		Else
+				xt = cx + (r2+r1 + 5) / 2 * CosD((ang2+ang1)/2) 'mete los textos en su zona
+				yt = cy + (r2+r1 + 5) / 2 * SinD((ang2+ang1)/2)			
+		End If
+	End If
+
+
+	
+	If magnitud = 0 Then	
+		pCan.DrawPath(p1, xui.Color_ARGB(255, 255, 255, 255  ), True, 1)
+	Else
+		
+		ranb = rango * (Brillomax - Brillomin)		
+		If CBcolor.Checked = False Then
+			magnitud = Brillomax - magnitud
+			pCan.DrawPath(p1, xui.Color_ARGB(255, magnitud*255.0/ranb, magnitud*255.0/ranb, magnitud*255.0/ranb  ), True, 1)
+		Else									
+			CargaPaletaNixNox		
+			mpal = ((magnitud - Brillomin)*31)/ranb
+			
+			If CBtemper.Checked = True Then ' Las zonas mas oscuras para zonas mas frias
+				mpal = 31 - mpal
+			End If		
+			
+			If mpal > 31 Then
+				mpal = 31
+			End If
+			If mpal < 0  Then
+				mpal = 0
+			End If		
+			mpal = 31-mpal	
+	'	Log("mag " & magnitud & "  mpal " &mpal &"  Rang "& ranb)
+			pCan.DrawPath(p1, xui.Color_ARGB(255, mR(mpal), mG(mpal), mB(mpal)  ), True, 1)
+		End If
+		
+		
+	End If	
+	
+	If CBtextobrillo.Checked = True Then	
+		If grados = 360 Then
+			pCan.DrawText(NumberFormat( mm, 2, 2), xt+10, yt, ff, xui.Color_Green, "CENTER")	'centra texto en 90º
+		Else
+			pCan.DrawText(NumberFormat( mm, 2, 2), xt, yt, ff, xui.Color_Green, "CENTER")		
+		End If				
+	End If
+	
+End Sub
+
+
+
+Private Sub bz	' Del fichero intermedio extrae tabla a representar y llama draw_sector
+'	PanelMain.RemoveAllViews
+'	Dim Can As B4XCanvas
+'	Can.Initialize(PanelMain)
+	Private ma As Float
+	Private nombre_fichero As String
+'	Dim R As B4XRect
+'	R.Initialize(0,0,PanelMain.Width,PanelMain.Height)
+'	Can.DrawRect(R,xui.Color_White,True,1dip)
+	Private nlinea As Int
+	Private naltura(48), nazimuth(48) As Int
+	Dim f12 As B4XFont = xui.CreateDefaultFont(10)
+	Private fich As String
+	
+	naltura(0) = 0
+	naltura(1) = 1
+	naltura(2) = 2
+	naltura(3) = 3
+	naltura(4) = 3
+	naltura(5) = 2
+	naltura(6) = 1
+	naltura(7) = 0
+
+	naltura(8) = 0
+	naltura(9) = 1
+	naltura(10) = 2
+	naltura(11) = 3
+	naltura(12) = 3
+	naltura(13) = 2
+	naltura(14) = 1
+	naltura(15) = 0
+
+	naltura(16) = 0
+	naltura(17) = 1
+	naltura(18) = 2
+	naltura(19) = 3
+	naltura(20) = 3
+	naltura(21) = 2
+	naltura(22) = 1
+	naltura(23) = 0
+
+	naltura(24) = 0
+	naltura(25) = 1
+	naltura(26) = 2
+	naltura(27) = 3
+	naltura(28) = 3
+	naltura(29) = 2
+	naltura(30) = 1
+	naltura(31) = 0
+
+	naltura(32) = 0
+	naltura(33) = 1
+	naltura(34) = 2
+	naltura(35) = 3
+	naltura(36) = 3
+	naltura(37) = 2
+	naltura(38) = 1
+	naltura(39) = 0
+
+	naltura(40) = 0
+	naltura(41) = 1
+	naltura(42) = 2
+	naltura(43) = 3
+	naltura(44) = 3
+	naltura(45) = 2
+	naltura(46) = 1
+	naltura(47) = 0
+
+	nazimuth(0) = 0
+	nazimuth(1) = 0
+	nazimuth(2) = 0
+	nazimuth(3) = 0
+	nazimuth(4) = 6
+	nazimuth(5) = 6
+	nazimuth(6) = 6
+	nazimuth(7) = 6
+
+	nazimuth(8) = 1
+	nazimuth(9) = 1
+	nazimuth(10) = 1
+	nazimuth(11) = 1
+	nazimuth(12) = 7
+	nazimuth(13) = 7
+	nazimuth(14) = 7
+	nazimuth(15) = 7
+
+	nazimuth(16) = 2
+	nazimuth(17) = 2
+	nazimuth(18) = 2
+	nazimuth(19) = 2
+	nazimuth(20) = 8
+	nazimuth(21) = 8
+	nazimuth(22) = 8
+	nazimuth(23) = 8
+
+
+	nazimuth(24) = 3
+	nazimuth(25) = 3
+	nazimuth(26) = 3
+	nazimuth(27) = 3
+	nazimuth(28) = 9
+	nazimuth(29) = 9
+	nazimuth(30) = 9
+	nazimuth(31) = 9
+
+	nazimuth(32) = 4
+	nazimuth(33) = 4
+	nazimuth(34) = 4
+	nazimuth(35) = 4
+	nazimuth(36) = 10
+	nazimuth(37) = 10
+	nazimuth(38) = 10
+	nazimuth(39) = 10
+
+	nazimuth(40) = 5
+	nazimuth(41) = 5
+	nazimuth(42) = 5
+	nazimuth(43) = 5
+	nazimuth(44) = 11
+	nazimuth(45) = 11
+	nazimuth(46) = 11
+	nazimuth(47) = 11
+
+	nombre_fichero = "sel.txt"	'fichero intermedio con los resultados ya seleccionados con 48 lineas
+	
+	If File.Exists(File.DirApp, nombre_fichero) Then
+		Dim su As StringUtils
+		Dim Table As List
+				
+		Table = su.LoadCSV(File.DirApp,nombre_fichero, Chr(9))
+		nlinea = 0
+
+		
+		For Each Row() As String In Table			
+			'	ma = Row(5)
+			If CBtemper.Checked = False Then
+				ma = Row(5)  'brillo
+				If ma < MVmin Then
+					MVmin = ma
+				Else if ma > MVmax Then
+					MVmax = ma
+				End If
+			Else
+				ma = Row(3)  'temp IR
+				If ma < MVmin Then
+					MVmin = ma
+				Else if ma > MVmax Then
+					MVmax = ma
+					If MVmax > 0 Then
+						MVmax = 0
+					End If
+				End If
+			End If
+		
+			
+			If nlinea < 48 Then
+				mag2(naltura(nlinea), nazimuth(nlinea)) = ma
+				nlinea = nlinea + 1						
+			End If
+		Next
+		'Lpiepag.Text = Lpiepag.Text & "  MV max:" & Round2(MVmax,2) & "  min:" & Round2( MVmin, 2)
+	Else
+		Return
+	End If
+	
+	If nlinea > 47 Then		' terminada tabla se pinta		
+'		Brillomax = MVmax
+'		Brillomin = MVmin		
+'		Lmvmax.Text = Round2( MVmax,2)
+'		Lmvmin.Text = Round2( MVmin,2)
+'		If CBauto.Checked = True Then
+'			Brillomax = MVmax
+'			Brillomin = MVmin
+'			
+'			Smvmax.Value = MVmax
+'			Smvmin.Value = MVmin
+'			rango =   Sbrillo.MinValue + Sbrillo.MaxValue - Sbrillo.Value	'1 + 2 - value = 3 - value = 2 a 1					
+'		Else 	
+'			Lmvmax.Text =Round2( Smvmax.Value,1)
+'			Lmvmin.Text =Round2( Smvmin.Value,1)
+'		End If
+		'	Log("Smax " & Smvmax.Value & "   Smin " & Smvmin.Value  & " rango " &  rango)
+		PreparaSectores
+
+	End If
+End Sub
+
+
+
+
+Private Sub PreparaSectores
+'	Dim Can As B4XCanvas
+'	Can.Initialize(PanelMain)
+	PanelMain.RemoveAllViews ' para poder refrescar el grafico
+	Dim f12 As B4XFont = xui.CreateDefaultFont(10)
+	Dim f14 As B4XFont = xui.CreateDefaultFont(12)
+	Private fich As String
+	Dim R As B4XRect
+	Dim mpal As Int
+	
+	Can.Initialize(PanelMain)
+	
+	R.Initialize(0,0,PanelMain.Width,PanelMain.Height)
+	Can.DrawRect(R,xui.Color_White,True,1dip)
+
+
+	Lmvmax.Text = Round2( MVmax,1)
+	Lmvmin.Text = Round2( MVmin,1)
+	If CBauto.Checked = True Then
+		Brillomax = MVmax
+		Brillomin = MVmin
+			
+		Smvmax.Value = MVmax
+		Smvmin.Value = MVmin
+		rango =   Sbrillo.MinValue + Sbrillo.MaxValue - Sbrillo.Value	'1 + 2 - value = 3 - value = 2 a 1
+	Else
+		Lmvmax.Text =Round2( Smvmax.Value,1)
+		Lmvmin.Text =Round2( Smvmin.Value,1)
+	End If
+
+
+
+	For naz = 0 To 11
+		For nal = 0 To 3
+			'draw_sector((3-nal)*20, (naz)*30 - 105.0, mag2(nal, naz), 250, 250, Can, 30, 20) 'giro en sentido horario			
+			draw_sector((3-nal)*18, (naz)*30 - 105.0, mag2(nal, naz), 250, 250, Can, 30, 18) 'giro en sentido horario				
+		Next
+	Next
+
+'	For pp = 0 To 240	
+'		Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, pp, pp, pp), 2)
+'	Next
+
+	For pp = 0 To 240			'pinta barra de brillos
+		If CBcolor.Checked = False Then
+			Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, 240-pp, 240-pp, 240-pp), 8)
+		Else
+			mpal = 31 - (pp/8)
+			'		Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, mR(mpal), mG(mpal), mB(mpal) ), 8)
+			If CBtemper.Checked = False Then
+				Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,  xui.Color_ARGB(250, mR(mpal), mG(mpal), mB(mpal) ), 8)
+			Else
+				Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, mR(31-mpal), mG(31-mpal), mB(31-mpal)), 8)
+			End If
+	
+		End If
+	Next
+		
+	Can.DrawText("TESS P",20, 50, f14, xui.Color_Black, "LEFT")
+	
+	fich = "TIR min: " & Round2(TempIRmin,1) & " ºC"
+	Can.DrawText(fich, 20, 60, f12, xui.Color_Black, "LEFT")
+	fich = "T sen: " & Round2( TempAmb,1) & " ºC"
+	Can.DrawText(fich, 20, 70, f12, xui.Color_Black, "LEFT")
+
+		
+	fich = fentrada.SubString2(0, fentrada.IndexOf(".")) & "    " & LatLongSl
+	Can.DrawText(fich, 250, 510, f12, xui.Color_Black, "CENTER")
+'	Can.DrawText("22", 20, 20, f12, xui.Color_Black, "CENTER")
+'	Can.DrawText("16", 500, 20, f12, xui.Color_Black, "CENTER")
+	If CBauto.Checked = True Then
+		Can.DrawText( Round2(MVmax,1), 500, 20, f12, xui.Color_Black, "CENTER")
+		Can.DrawText( Round2(MVmin,1), 20, 20, f12, xui.Color_Black, "CENTER")
+	Else
+		Can.DrawText( Round2( Brillomax,1), 500, 20, f12, xui.Color_Black, "CENTER")
+		Can.DrawText( Round2(Brillomin,1), 20, 20, f12, xui.Color_Black, "CENTER")				
+	End If
+
+	Can.DrawText("N", 465, 55, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("S", 465, 75, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("E", 475, 65, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("W", 455, 65, f14, xui.Color_Black, "CENTER")
+	
+	If CBtemper.Checked = False Then
+		Can.DrawText( "mag/arcsec2", 250, 20, f12, xui.Color_Black, "CENTER")
+	Else
+		Can.DrawText( "Temp. IR ºC", 250, 20, f12, xui.Color_Black, "CENTER")
+	End If
+
+
+	grafica = Can
+	Can.Invalidate
+	Can.Release		
+
+End Sub
+
+
+Private Sub PreparaSectores145 
+'	Dim Can As B4XCanvas
+'	Can.Initialize(PanelMain)
+	PanelMain.RemoveAllViews ' para poder refrescar el grafico
+	Dim f12 As B4XFont = xui.CreateDefaultFont(10)
+	Dim f14 As B4XFont = xui.CreateDefaultFont(12)
+	Private fich As String
+	Dim R As B4XRect
+	Dim fila As Int
+	Dim rota As Float
+	Dim mpal As Int
+	
+'	rota = 105
+	rota = 90
+	Can.Initialize(PanelMain)	
+	R.Initialize(0,0,PanelMain.Width,PanelMain.Height)
+	Can.DrawRect(R,xui.Color_White,True,1dip)
+	
+'	Brillomax = MVmax
+'	Brillomin = MVmin
+
+
+'	Lmvmax.Text = Round2( MVmax,2)
+'	Lmvmin.Text = Round2( MVmin,2)
+	If CBauto.Checked = True Then
+		Brillomax =  MVmax
+		Brillomin = MVmin
+		Smvmax.Value =  MVmax
+		Smvmin.Value =  MVmin
+		rango =   Sbrillo.MinValue + Sbrillo.MaxValue - Sbrillo.Value	'1 + 2 - value = 3 - value = 2 a 1
+	Else
+		'Lmvmax.Text =Round2( Smvmax.Value,1)
+		'Lmvmin.Text =Round2( Smvmin.Value,1)
+	End If
+
+	For naz = 1 To 32
+		fila = naz
+		'draw_sector(64,  naz*11.25 ,   10+(naz/3), 250, 250, Can, 11) 'giro en sentido horario
+		draw_sector(64,  naz*11.25 -(rota+11.25+11.25/2) ,   MagAS(fila), 250, 250, Can, 11,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 28
+		fila = fila +1
+		draw_sector(56,  naz*12.86 -(rota+12.86+12.86/2),   MagAS(fila), 250, 250, Can, 12,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 24
+		fila = fila +1
+		draw_sector(48,  naz*15 -(rota+15+15/2),   MagAS(fila), 250, 250, Can, 15,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 20
+		fila = fila +1
+		draw_sector(40,  naz*18 -(rota+18+18/2),   MagAS(fila), 250, 250, Can, 18,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 16
+		fila = fila +1
+		draw_sector(32,  naz*22.5 -(rota+22.5+22.5/2),  MagAS(fila), 250, 250, Can, 22,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 12
+		fila = fila +1
+		draw_sector(24,  naz*30 -(rota+30+30/2),   MagAS(fila), 250, 250, Can, 30,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 8
+		fila = fila +1
+		draw_sector(16,  naz*45 -(rota+45+45/2),   MagAS(fila), 250, 250, Can, 45,8) 'giro en sentido horario
+	Next
+	For naz = 1 To 4
+		fila = fila +1
+		draw_sector(8,  naz*90 -(rota+90+90/2),   MagAS(fila), 250, 250, Can, 90,8) 'giro en sentido horario
+	Next
+	fila = fila +1
+	draw_sector(0,  0 ,   MagAS(fila), 250, 250, Can,360,8) 'giro en sentido horario
+	
+
+	For pp = 0 To 240		' Pinta barra de paleta		
+		If CBcolor.Checked = False Then
+			Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, 240-pp, 240-pp, 240-pp), 8)
+		Else
+			mpal = 31-( pp/8)			
+'			Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, mR(mpal), mG(mpal), mB(mpal) ), 8)			
+			If CBtemper.Checked = False Then
+				Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,  xui.Color_ARGB(250, mR(mpal), mG(mpal), mB(mpal) ), 8)
+			Else
+				Can.DrawLine(pp*2+20, 5,   pp*2+20, 5,   xui.Color_ARGB(250, mR(31-mpal), mG(31-mpal), mB(31-mpal)), 8)
+			End If
+		End If				
+	Next
+	
+
+'	Can.DrawText("N", 465, 55, f14, xui.Color_Black, "CENTER")
+'	Can.DrawText("S", 465, 75, f14, xui.Color_Black, "CENTER")
+'	Can.DrawText("E", 475, 65, f14, xui.Color_Black, "CENTER")
+'	Can.DrawText("W", 455, 65, f14, xui.Color_Black, "CENTER")
+	'	
+
+	Can.DrawText("Tess Auto Scan ",20, 50, f14, xui.Color_Black, "LEFT")
+	
+	fich = "TIR min: " & Round2(TempIRmin,1) & " ºC"
+	Can.DrawText(fich, 20, 60, f12, xui.Color_Black, "LEFT")
+	fich = "T sen: " & Round2( TempAmb,1) & " ºC"
+	Can.DrawText(fich, 20, 70, f12, xui.Color_Black, "LEFT")
+
+	Can.DrawText("N", 465, 55, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("S", 465, 75, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("E", 475, 65, f14, xui.Color_Black, "CENTER")
+	Can.DrawText("W", 455, 65, f14, xui.Color_Black, "CENTER")
+
+	
+	fich = fentrada.SubString2(0, fentrada.IndexOf(".")) & "    " & LatLongSl
+	Can.DrawText(fich, 250, 510, f12, xui.Color_Black, "CENTER")
+	If CBauto.Checked = True Then
+		Can.DrawText( Round2(MVmax,1), 500, 20, f12, xui.Color_Black, "CENTER")
+		Can.DrawText( Round2(MVmin,1), 20, 20, f12, xui.Color_Black, "CENTER")				
+	Else
+		Can.DrawText( Round2( Brillomax,1), 500, 20, f12, xui.Color_Black, "CENTER")
+		Can.DrawText( Round2(Brillomin,1), 20, 20, f12, xui.Color_Black, "CENTER")		
+	End If
+	
+	If CBtemper.Checked = False Then
+		Can.DrawText( "mag/arcsec2", 250, 20, f12, xui.Color_Black, "CENTER")
+	Else
+		Can.DrawText( "Temp. IR ºC", 250, 20, f12, xui.Color_Black, "CENTER")
+	End If
+	
+	
+	grafica = Can
+	Can.Invalidate
+	Can.Release
+		
+End Sub
+
+
+Sub caldifacimut(ac1 As Int, ac2 As Int)
+
+	If ( (ac1 > 350) And (ac2 < 10)) Then
+		difacimut = (360 - ac1 + ac2)
+	Else If ((ac1 < 10) And (ac2 > 350)) Then
+		difacimut =  360 - ac2 + ac1
+	Else
+		difacimut = Abs(ac1 - ac2)
+	End If
+	
+End Sub
+
+
+
+Sub abrirfile145 (Nombre As String)  ' Abre fichero raw 
+	
+'	Private sealev As Float
+	Private altura, alturaold As Float
+	Private acimut, acimutold As Float
+
+	Private fsalida As String
+
+	Private espera, numrow, anterow, nuevarow, nc, recuperada As Int
+	Private strsalida, strlinea As String
+	Private head As List
+	Private contenido As String
+	Private sealev As Float
+	
+	fentrada = Nombre
+'	fsalida = "sel.txt"			
+	
+	numrowreal = 0
+	recuperada = 0
+	anterow = 0
+	
+	If File.Exists(File.DirApp,fentrada) Then
+		Dim su As StringUtils
+		Dim Table As List
+'		Log(Nombre)
+		
+'		If File.Exists(File.DirApp, fsalida) Then
+'			File.Delete(File.DirApp, fsalida)			
+'		End If
+'		strsalida = ""
+		
+		contenido = File.ReadString(File.DirApp,fentrada)
+		
+		If contenido.IndexOf("#") = 0 Then
+			If contenido.LastIndexOf("#") > 0 Then
+'				ListView1.Items.Add ( "Multiples # " )
+				Lpiepag.Text = "Multiple starting simbol #"
+'				LatLongSl =  "Multiples # "
+				Return
+			End If
+			Table = su.LoadCSV2( File.DirApp,fentrada, Chr(9) , head)
+			
+			If CBtemper.Checked = False Then
+				MVmin = 100
+				MVmax = 0
+			Else
+				MVmin = 0
+				MVmax = -100				
+			End If	
+			TempIRmin = 100
+			
+			For nc = 0 To  145 
+				 MagAS(nc) = 22
+			Next
+
+			For Each row() As String In Table
+				numrow = row(0)				
+				If numrow = 0 Then
+					numrow = 1
+				End If
+				
+				
+				numrowreal = numrowreal + 1				
+'				If  row(0) > numrow  Then
+'			    	Log(numrow & "    " & row(0) )
+'					numrow = numrow + 1 	'incremento para suplir falta
+'				End If
+
+
+				If numrow = anterow + 1  Then
+					' normal
+				Else if numrow  = anterow + 2 Then  ' 1 perdida
+					If CBtemper.Checked = True Then
+						MagAS(numrow-1) = row(3)
+					Else
+						MagAS(numrow-1) = row(5)
+					End If
+		'			Log("recuperado " & anterow)
+					recuperada = recuperada + 1
+				Else If numrow  = anterow + 3 Then   ' perdidas
+		'			Log(numrow & "  recuperado 2s " & anterow)
+					If CBtemper.Checked = True Then
+						MagAS(numrow-1) = row(3)
+						MagAS(numrow-2) = row(3)
+					Else
+						MagAS(numrow-1) = row(5)
+						MagAS(numrow-2) = row(5)
+					End If
+					recuperada = recuperada + 1
+				End If
+				anterow = numrow
+				
+
+				
+				altura = row(7)
+				acimut = row(8)
+				
+				If CBtemper.Checked = False Then
+					MagAS(numrow) = row(5)  		'brillo
+					If MagAS(numrow) < MVmin Then
+						MVmin = MagAS(numrow)						
+					Else if MagAS(numrow) > MVmax Then
+						MVmax = MagAS(numrow)
+					End If									
+				Else
+					MagAS(numrow) = row(3)  		'temp IR
+					If MagAS(numrow) < MVmin Then
+						MVmin = MagAS(numrow)
+					Else if MagAS(numrow) > MVmax Then
+						MVmax = MagAS(numrow)
+						If MVmax > 0 Then
+						   MVmax = 0
+						 End If  
+					End If					
+				End If
+				
+	
+				
+				Try
+					sealev = row(11) 'cuando no hay GPS parece faltar una columna
+				Catch
+					'			Log(row(10))
+					sealev = 0
+				End Try
+
+				If (row(3) < TempIRmin) Then
+					TempIRmin = row(3)
+					TempAmb = row(4)
+				End If
+				Private corto As String
+				corto = row(10).SubString2(0, row(10).IndexOf(",")+2)
+				LatLongSl =  "  " & row(2) & "     Lat: " &  row(9).SubString2(0, row(9).IndexOf(",")+2) & "  Lon: " & corto ' & "   SL: " & Row(10)
+				LatLongSl = LatLongSl  & "  SL: " & sealev & " m"
+'				Lati = " Lat: " & row(9).SubString2(0, row(9).IndexOf(",")+2)
+'				Longi = " Lon: " & corto
+'				HoraSl = " SL: " & sealev & " m"					
+			Next
+
+			If numrowreal = 145 Then
+				Lpiepag.Text = "OK, " & numrowreal & " rows found. Max: " & Round2( MVmax,1) & " Min: " & Round2( MVmin,1)
+	'			File.WriteString(File.DirApp, fsalida, strsalida)
+				Lmvmax.Text = "H: " &  Round2( MVmax,1)
+				Lmvmin.Text ="L: " &  Round2( MVmin,1)
+						
+			Else
+				Lpiepag.Text = "  Lost: " & (145 - numrowreal) & " rows of 145."	 & "  Restored: " & recuperada & "  Max: " & Round2( MVmax,1) & " Min: " & Round2( MVmin,1)
+				recuperada = 0
+			End If
+			
+		Else
+			'ListView1.Items.Add ( "Caracter de comienzo no encontrado." )
+			Lpiepag.Text = "Starting simbol # not found."
+		End If
+				
+	Else
+		' ListView1.Items.Add ("No existe fichero: " & fentrada)
+		Lpiepag.Text =  fentrada & "  not found. "
+	End If
+	
+End Sub
+
+
+
+
+Sub abrirfile (Nombre As String)  ' Abre fichero raw y saca fichero intermedio sel.txt
+	
+	Private sealev As Float
+	Private altura, alturaold As Float
+	Private acimut, acimutold As Float
+
+	
+	Private fsalida As String
+
+	Private espera, numrow, nuevarow, nc, numlinea As Int
+	Private strsalida, strlinea As String
+	Private head As List
+	Private contenido As String
+	
+	fentrada = Nombre
+	fsalida = "sel.txt"
+	
+	If File.Exists(File.DirApp,fentrada) Then
+		Dim su As StringUtils
+		Dim Table As List
+		
+		If File.Exists(File.DirApp, fsalida) Then
+			File.Delete(File.DirApp, fsalida)
+			
+		End If
+		strsalida = ""
+		contenido = File.ReadString(File.DirApp,fentrada)
+		
+		If contenido.IndexOf("#") = 0 Then			
+			If contenido.LastIndexOf("#") > 0 Then
+'				ListView1.Items.Add ( "Multiples # " )
+				Lpiepag.Text = "Multiple starting simbol #"
+'				LatLongSl =  "Multiples # "
+				Return
+			End If
+			Table = su.LoadCSV2( File.DirApp,fentrada, Chr(9) , head)
+'		Table = su.LoadCSV( File.DirApp,fentrada, Chr(9) )
+'			Log(head)
+
+'			MVmin = 100
+'			MVmax = 0
+'			TempIRmin = 100
+			If CBtemper.Checked = False Then
+				MVmin = 100
+				MVmax = 0
+			Else
+				MVmin = 0
+				MVmax = -100
+			End If
+			TempIRmin = 100
+
+			
+			For Each Row() As String In Table
+				numrow = numrow + 1
+			'	sealev = Row(4)
+			'	altura = Row(6)
+			'	acimut = Row(7)
+				altura = Row(7)
+				acimut = Row(8)
+			
+			
+				caldifacimut( acimut, acimutold)
+'				If (altura > alturaold + 3) Or (altura < alturaold - 3)  Or (acimut > acimutold + 14) Or (acimut < acimutold - 14)   Then
+				If (altura > alturaold + 3) Or (altura < alturaold - 3)  Or (difacimut > 14)    Then
+					espera = espera + 1
+					If espera > 4 Then
+						espera = 0
+						nuevarow = nuevarow + 1
+						alturaold = altura
+						acimutold = acimut
+					'	If nuevarow < 43 Then
+						If nuevarow < 49 Then
+'							LatLongSl = Row(0) & "  " & Row(1) & "    Lat.: " & Row(8) & "   Long.: " & Row(9) ' & "   SL: " & Row(10)
+
+							Private corto As String
+							corto = Row(10).SubString2(0, Row(10).IndexOf(",")+2)
+							LatLongSl =  "  " & Row(2) & "    Lat: " &  Row(9).SubString2(0, Row(9).IndexOf(",")+2) & "  Lon: " & corto ' & "   SL: " & Row(10)
+				'			LatLongSl = LatLongSl  & "  SL: " & sealev
+							Lati = " Lat: " & Row(9).SubString2(0, Row(9).IndexOf(",")+2)
+
+							If (Row(3) < TempIRmin) Then
+								TempIRmin = Row(3)
+								TempAmb = Row(4)
+							End If
+
+							Try
+								'sealev = Row(10) 'cuando no hay GPS parece faltar una columna
+								sealev = Row(11) 'cuando no hay GPS parece faltar una columna
+							Catch
+'								Log(nuevarow)
+								sealev = 0
+							End Try
+							
+							LatLongSl = LatLongSl  & "   SL: " & sealev
+							For nc = 0 To Row.Length-1
+								strsalida = strsalida  & Row(nc)	& "	"
+								strlinea = strlinea  & Row(nc)	& "	"
+							Next
+							'If nuevarow < 42 Then
+							If nuevarow < 48 Then
+								strsalida = strsalida & CRLF
+								strlinea = strlinea & CRLF
+							End If
+							'ListView1.Items.Add (nuevarow & "  " & strlinea )
+						End If
+					End If
+				End If
+			Next
+'			Lpiepag.Text = LatLongSl			
+'			ListView1.Items.Add ("Total filas " & nuevarow)
+			If nuevarow > 47 Then
+				Try
+					sealev = Row(11) 'cuando no hay GPS parece faltar una columna
+				Catch
+					'			Log(row(10))
+					sealev = 0
+				End Try
+
+				'Lpiepag.Text = "OK file. Total rows found: " & nuevarow
+				Lpiepag.Text = "OK file. Total rows found: " & numrow & " Max:" & Round2( MVmax,1) & " Min:" & Round2( MVmin,1)
+				File.WriteString(File.DirApp, fsalida, strsalida)
+				Lmvmax.Text = Round2( MVmax,1)
+				Lmvmin.Text = Round2( MVmin,1)
+			Else
+				Lpiepag.Text = "Error. Total rows < 48: " & nuevarow		
+				
+			End If
+			
+		Else
+				'ListView1.Items.Add ( "Caracter de comienzo no encontrado." )
+			Lpiepag.Text = "Starting simbol # not found."
+		End If
+				
+	Else
+		' ListView1.Items.Add ("No existe fichero: " & fentrada)
+		Lpiepag.Text =  fentrada & "  not found. " 
+	End If
+	
+End Sub 
+
+
+
+
+Sub Bshowfiles_Action   'refresca lista ficheros
+	Dim listafiles As List
+	Dim i As Int
+	Dim fichero As String
+	
+	ListView1.Items.Clear
+	
+
+	listafiles = File.ListFiles(File.DirApp)
+	Log(listafiles.Size)
+	For i = 0 To  listafiles.Size -1 			
+		fichero =  	listafiles.Get(i)
+		If  fichero.Contains("txt") Then
+			If fichero.Contains("_AS_")  Then
+				ListView1.Items.Add(listafiles.Get(i) )				
+			End If
+		End If
+	Next
+	ListView1.Items.Sort(True)
+	
+End Sub
+
+
+Sub Bsavebmp_Action
+	Private mybm As B4XBitmap
+	Dim Out As OutputStream
+	Private myfn As String
+	
+	If CBtemper.Checked = False Then
+		myfn = fentrada.SubString2(0, fentrada.IndexOf(".")) 
+	Else
+		myfn = fentrada.SubString2(0, fentrada.IndexOf("."))
+		myfn = myfn & "_IR"
+	End If	
+		
+	Lpiepag.Text = myfn & "  ok"
+	If AS145 = False Then 
+		File.Copy(File.DirApp, "sel.txt", File.DirApp, myfn & "_out.csv")
+	End If
+	
+	mybm = grafica.CreateBitmap	
+	Out = File.OpenOutput(File.DirApp, myfn & ".png", False)	
+	mybm.WriteToStream(Out, 100, "PNG")
+	Out.Close
+End Sub
+
+Sub Sbrillo_ValueChange (Value As Double) 					'Contraste
+	rango =   Sbrillo.MinValue + Sbrillo.MaxValue - Value
+	Lcontras.Text = Round2(2- rango,1)
+'	rango = Value	
+	If AS145 = True Then
+		abrirfile145(FichSel)
+		PreparaSectores145
+	Else
+		PreparaSectores
+	End If
+
+End Sub
+
+Sub Smvmax_ValueChange (Value As Double)
+'	If Value > MVmax Then
+	Lmvmax.Text ="H: " &  Round2( Value,2)
+		Brillomax = Value		
+		If AS145 = True Then
+			abrirfile145(FichSel)
+		    PreparaSectores145
+		Else
+			PreparaSectores
+		End If			
+'	Else 
+'		Smvmax.Value = MVmax		
+'	End If
+'	
+End Sub
+
+Sub Smvmin_ValueChange (Value As Double)
+'	If Value < MVmin Then
+	Lmvmin.Text ="L: " &  Round2( Value, 2)
+		Brillomin = Value
+		If AS145 = True Then
+			abrirfile145(FichSel)
+			PreparaSectores145
+		Else
+			PreparaSectores
+		End If
+
+'	Else
+'		Smvmin.Value = MVmin
+'	End If	
+'	
+End Sub
+
+Sub ListView1_MouseClicked (EventData As MouseEvent)
+'	Log (ListView1.Items.Get(ListView1.SelectedIndex))
+	FichSel = ListView1.Items.Get(ListView1.SelectedIndex)
+	If FichSel.IndexOf("_AS_") >0 Then
+		abrirfile145(FichSel)
+		If numrowreal >  138 Then
+			PreparaSectores145
+			AS145 = True
+		End If		
+	Else
+		AS145 = False
+		abrirfile(FichSel)
+		bz
+	End If
+	
+End Sub
+
+Sub CargaPaletaNixNox
+	mR(0)= 8
+	mR(1)= 17
+	mR(2)= 25
+	mR(3)= 35
+	mR(4)= 34
+	mR(5)= 32
+	mR(6)= 29
+	mR(7)= 41
+	mR(8)= 17
+	mR(9)= 36
+	mR(10)= 32
+	mR(11)= 25
+	mR(12)= 38
+	mR(13)= 29
+	mR(14)= 39
+	mR(15)= 47
+	mR(16)= 54
+	mR(17)= 75
+	mR(18)= 84
+	mR(19)= 108
+	mR(20)= 128
+	mR(21)= 138
+	mR(22)= 148
+'	mR(23)= 201
+	mR(23)= 160
+	mR(24)= 178
+	mR(25)= 202
+	mR(26)= 214
+	mR(27)= 226
+	mR(28)= 237
+	mR(29)= 242
+	mR(30)= 248
+	mR(31)= 251
+	
+	mG(0)= 31
+	mG(1)= 39
+	mG(2)= 46
+	mG(3)= 51
+	mG(4)= 59
+	mG(5)= 67
+	mG(6)= 77
+	mG(7)= 84
+	mG(8)= 94
+	mG(9)= 104
+	mG(10)= 115
+	mG(11)= 126
+	mG(12)= 135
+	mG(13)= 147
+	mG(14)= 155
+	mG(15)= 163
+	mG(16)= 174
+	mG(17)= 184
+	mG(18)= 193
+	mG(19)= 200
+	mG(20)= 204
+	mG(21)= 210
+	mG(22)= 216
+'	mG(23)= 205
+	mG(23)= 220
+	mG(24)= 225
+	mG(25)= 235
+	mG(26)= 239
+	mG(27)= 242
+	mG(28)= 247
+	mG(29)= 251
+	mG(30)= 251
+	mG(31)= 254
+
+	mB(0)= 96
+	mB(1)= 113
+	mB(2)= 131
+	mB(3)= 144
+	mB(4)= 151
+	mB(5)= 159
+	mB(6)= 161
+	mB(7)= 163
+	mB(8)= 170
+	mB(9)= 174
+	mB(10)= 178
+	mB(11)= 182
+	mB(12)= 185
+	mB(13)= 189
+	mB(14)= 191
+	mB(15)= 193
+	mB(16)= 194
+	mB(17)= 195
+	mB(18)= 194
+	mB(19)= 187
+	mB(20)= 186
+	mB(21)= 187
+	mB(22)= 186
+'	mB(23)= 169
+	mB(23)= 182
+	mB(24)= 182
+	mB(25)= 178
+	mB(26)= 178
+	mB(27)= 176
+	mB(28)= 175
+	mB(29)= 186
+	mB(30)= 194
+	mB(31)= 207
+	
+	
+End Sub
+
+Sub ListView1_SelectedIndexChanged(Index As Int)
+	FichSel = ListView1.Items.Get(ListView1.SelectedIndex)
+	If FichSel.IndexOf("_AS_") >0 Then
+		abrirfile145(FichSel)
+		If numrowreal >  138 Then
+			PreparaSectores145
+			AS145 = True
+		End If
+	Else
+		AS145 = False
+		abrirfile(FichSel)
+		bz
+	End If
+	
+End Sub
+
+Sub Bmas_MouseClicked (EventData As MouseEvent)
+	Brillomin = Brillomin + 0.1
+
+	If AS145 = True Then
+		abrirfile145(FichSel)
+		PreparaSectores145
+	Else
+		PreparaSectores
+	End If
+	Lmvmin.Text = "L: " & Round2( Brillomin, 1)
+End Sub
+
+Sub Bmenos_MouseClicked (EventData As MouseEvent)
+	Brillomin = Brillomin - 0.1
+
+	If AS145 = True Then
+		abrirfile145(FichSel)
+		PreparaSectores145
+	Else
+		PreparaSectores
+	End If
+	Lmvmin.Text = "L: " & Round2( Brillomin, 1)
+End Sub
+
+
+Sub BMmas_MouseClicked (EventData As MouseEvent)
+	Brillomax = Brillomax + 0.1
+
+	If AS145 = True Then
+		abrirfile145(FichSel)
+		PreparaSectores145
+	Else
+		PreparaSectores
+	End If
+	Lmvmax.Text ="H: " & Round2( Brillomax, 1)
+End Sub
+
+Sub BMmenos_MouseClicked (EventData As MouseEvent)
+	Brillomax = Brillomax - 0.1
+
+	If AS145 = True Then
+		abrirfile145(FichSel)
+		PreparaSectores145
+	Else
+		PreparaSectores
+	End If
+	Lmvmax.Text ="H: " &  Round2( Brillomax, 1)
+End Sub
